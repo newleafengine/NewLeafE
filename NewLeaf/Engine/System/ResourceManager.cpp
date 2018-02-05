@@ -31,11 +31,21 @@ nle::GLSL& nle::ResourceManager::AddShader(const ShaderType & type)
 
 nle::Window& nle::ResourceManager::AddRenderWindow(const nle::WindowInfo & winInfo)
 {
+	if (m_Windows.find(nle::WindowType::RenderWindow) != m_Windows.end())
+	{
+		m_Windows.at(nle::WindowType::RenderWindow)->InitWindow(winInfo);
+		return *m_Windows.find(nle::WindowType::RenderWindow)->second;
+	}
 	return *m_Windows.emplace(nle::WindowType::RenderWindow, std::make_unique<nle::Window>(winInfo)).first->second;
 }
 
 nle::Window& nle::ResourceManager::AddConsoleWindow(const nle::WindowInfo & winInfo)
 {
+	if (m_Windows.find(nle::WindowType::ConsoleWindow) != m_Windows.end())
+	{
+		m_Windows.at(nle::WindowType::ConsoleWindow)->InitWindow(winInfo);
+		return *m_Windows.find(nle::WindowType::ConsoleWindow)->second;
+	}
 	return *m_Windows.emplace(nle::WindowType::ConsoleWindow, std::make_unique<nle::Console>(winInfo)).first->second;
 }
 
@@ -62,14 +72,14 @@ nle::GLSL & nle::ResourceManager::GetShader(const ShaderType & type)
 	return m_Shaders.at(type);
 }
 
-nle::Window & nle::ResourceManager::GetRenderWindow()
+nle::Window* nle::ResourceManager::GetRenderWindow()
 {
 	// TODO: insert return statement here
-	return *m_Windows.at(nle::WindowType::RenderWindow);
+	return m_Windows.at(nle::WindowType::RenderWindow).get();
 }
 
-nle::Window & nle::ResourceManager::GetConsoleWindow()
+nle::Window* nle::ResourceManager::GetConsoleWindow()
 {
 	// TODO: insert return statement here
-	return *m_Windows.at(nle::WindowType::ConsoleWindow);
+	return m_Windows.at(nle::WindowType::ConsoleWindow).get();
 }

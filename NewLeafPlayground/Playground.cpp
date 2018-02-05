@@ -40,20 +40,20 @@ void nlp::Playground::LoadResources()
 
 
 	// Load the camera
-	nle::Camera& orthoCam = m_ResourceManager.AddCamera(nle::CameraType::Ortho);
-	orthoCam.CreateOrthographic(0, 1080, 720, 0);
-
+	nle::Camera& renderOrthoCam = m_ResourceManager.AddCamera(nle::CameraType::RenderOrtho);
+	renderOrthoCam.CreateOrthographic(0, 1080, 720, 0);
+	nle::Camera& consoleOrthoCam = m_ResourceManager.AddCamera(nle::CameraType::ConsoleOrtho);
+	consoleOrthoCam.CreateOrthographic(0, 720, 560, 0);
 
 	// Load the font
 	nle::Font& arialFont = m_ResourceManager.AddFont(nle::FontType::Arial);
 	arialFont.LoadFont(48, "Fonts/arial.ttf");
 	arialFont.CreateCharacterMap();
-
 }
 
 void nlp::Playground::GameLoop()
 {
-	while (m_ResourceManager.GetRenderWindow().IsOpen())
+	while (m_ResourceManager.GetRenderWindow()->IsOpen())
 	{
 		Update();
 		Display();
@@ -64,24 +64,69 @@ void nlp::Playground::Update()
 {
 	// poll events for both windows
 	sf::Event e;
-	while (m_ResourceManager.GetRenderWindow().PollEvents(e))
+	while (m_ResourceManager.GetRenderWindow()->PollEvents(e))
 	{
 		if (e.type == sf::Event::Closed)
-			m_ResourceManager.GetRenderWindow().Close();
+			m_ResourceManager.GetRenderWindow()->Close();
 		if (e.type == sf::Event::KeyPressed)
+		{
 			if (e.key.code == sf::Keyboard::Escape)
-				m_ResourceManager.GetRenderWindow().Close();
+				m_ResourceManager.GetRenderWindow()->Close();
+			if (e.key.code == sf::Keyboard::BackSlash)
+			{
+				auto console = dynamic_cast<nle::Console*>(&m_ResourceManager.AddConsoleWindow(nle::WindowInfo()));
+				console->SetResources(m_ResourceManager);
+				m_Console = true;
+			}
+		}
+	}
+
+
+
+	if (m_Console)
+	{
+		auto console = m_ResourceManager.GetConsoleWindow();
+
+		// Poll our events
+		while (console->PollEvents(e))
+		{
+			if (e.type == sf::Event::GainedFocus)
+				console->SetDraggable(true);
+			if (e.type == sf::Event::LostFocus)
+				console->SetDraggable(false);
+			if (e.type == sf::Event::Closed)
+				console->Close();
+			if (e.type == sf::Event::KeyPressed)
+				if (e.key.code == sf::Keyboard::Escape)
+				{
+					console->Close();
+					m_ResourceManager.GetRenderWindow()->SetFocus();
+					m_Console = false;
+				}
+		}
+
+
+		// check if we can drag our console window
+		console->StartMouseOffset();
+		auto consoleRect = console->GetWindowRect().Resize(30, nle::RESIZE_Y);
+		if (console->GetDraggable() && consoleRect.Contains(console->GetMousePosition(false)))
+		{
+			while (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+			{
+
+				auto offset = console->GetMouseOffset();
+				console->MoveWindow(offset.x, offset.y);
+			}
+		}
 	}
 }
 
 void nlp::Playground::Display()
 {
-
-
-	m_ResourceManager.GetRenderWindow().SetActive();
-	m_ResourceManager.GetRenderWindow().Clear();
-
-	nle::Text::DrawText(m_ResourceManager, "Hello World", 50, 50, glm::vec3(1.0, 1.0, .2));
-
-	m_ResourceManager.GetRenderWindow().Display();
+	m_ResourceManager.GetRenderWindow()->SetActive();
+	m_ResourceManager.GetRenderWindow()->Clear(true);
+	m_ResourceManager.GetRenderWindow()->Display();
+	
+	if (m_Console)
+		m_ResourceManager.GetConsoleWindow()->Display();
 }

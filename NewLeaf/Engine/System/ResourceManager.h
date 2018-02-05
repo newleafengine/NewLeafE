@@ -12,8 +12,8 @@ namespace nle
 {
 	enum class FontType {Default, Arial};
 	enum class TextureType {Default};
-	enum class CameraType {Default, Ortho};
-	enum class ShaderType {Default, Text};
+	enum class CameraType {Default, RenderOrtho, ConsoleOrtho};
+	enum class ShaderType {Default, Text, Console};
 	enum class WindowType {RenderWindow, ConsoleWindow};
 
 	class ResourceManager
@@ -37,8 +37,8 @@ namespace nle
 		nle::GLSL& GetShader(const ShaderType& type);
 
 		// Specific getters
-		nle::Window& GetRenderWindow();
-		nle::Window& GetConsoleWindow();
+		nle::Window* GetRenderWindow();
+		nle::Window* GetConsoleWindow();
 
 	private:
 		std::unordered_map<FontType, nle::Font> m_Fonts;

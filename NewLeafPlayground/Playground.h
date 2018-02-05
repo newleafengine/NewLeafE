@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine\System\Window.h>
+#include <Engine\Log\Console.h>
 #include <Engine\System\ResourceManager.h>
 #include <Engine\Graphics\Font.h>
 #include <Engine\Graphics\Texture.h>
@@ -20,5 +21,6 @@ namespace nlp
 			void Display();
 		private: // Private member variables
 			nle::ResourceManager	m_ResourceManager;
+			bool					m_Console;
 	};
 }

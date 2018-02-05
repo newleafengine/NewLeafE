@@ -1,11 +1,6 @@
 #include "Window.h"
 #include <iostream>
 
-nle::Window::Window() : m_Draggable(false), m_LastMousePos(0, 0), m_MousePos(0, 0), m_ClearColor(0)
-{
-	int t = 0;
-}
-
 nle::Window::Window(const WindowInfo & winInfo) : m_Draggable(false), m_LastMousePos(0, 0), m_MousePos(0, 0), m_ClearColor(0)
 {
 	InitWindow(winInfo);
@@ -13,6 +8,10 @@ nle::Window::Window(const WindowInfo & winInfo) : m_Draggable(false), m_LastMous
 
 nle::WindowInfo::WindowInfo()
 {
+	size = { 720, 560 };
+	title = "";
+	style = sf::Style::None;
+	settings = sf::ContextSettings(0, 0, 0, 4, 5);
 }
 
 nle::WindowInfo::WindowInfo(glm::ivec2 tSize, std::string tTitle, int tStyle, sf::ContextSettings tSettings)
@@ -107,13 +106,24 @@ void nle::Window::SetClearColor(glm::vec4 color)
 	}
 }
 
-void nle::Window::Clear(glm::vec4 color, bool clearDepth)
+void nle::Window::Clear(bool clearDepth, glm::vec4 color)
 {
 	SetClearColor(color);
 	if (clearDepth)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	else
 		glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void nle::Window::Display()
+{
+	m_Window.display();
+}
+
+void nle::Window::SetFocus()
+{
+	m_Window.requestFocus();
+	m_Window.setActive();
 }
 
 nle::AreaRect nle::Window::GetDraggableRect()
@@ -124,5 +134,6 @@ nle::AreaRect nle::Window::GetDraggableRect()
 
 void nle::Window::Close()
 {
+	m_ClearColor = glm::vec4(0, 0, 0, 0);
 	m_Window.close();
 }

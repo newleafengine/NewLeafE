@@ -1,17 +1,12 @@
 #include "Text.h"
 #include <glm\gtc\matrix_transform.hpp>
 
-/*
 nle::Text::Text()
 {
 }
 
-nle::Text::Text(nle::Font& font, nle::GLSL& shader, glm::mat4& proj)
+nle::Text::Text()
 {
-	m_Shaders->linkShaders();
-	m_TextColorLoc = m_Shaders->getUniformLocation("TextColor");
-	m_ProjLoc = m_Shaders->getUniformLocation("Projection");
-	m_Resized = true;
 }
 
 nle::Text::~Text()
@@ -19,53 +14,46 @@ nle::Text::~Text()
 
 }
 
-void nle::Text::SetShader(nle::GLSL* shaders)
+void nle::Text::SetShader(nle::GLSL& shaders)
 {
-	m_Shaders = shaders;
+	m_Shaders = &shaders;
 	m_Shaders->linkShaders();
 }
 
-void nle::Text::SetFont(nle::Font* font)
+void nle::Text::SetFont(nle::Font& font)
 {
-	m_Font = font;
-	m_TextColorLoc = m_Shaders->getUniformLocation("TextColor");
+	m_Font = &font;
 }
 
-void nle::Text::SetText(std::string text)
+void nle::Text::SetProjection(glm::mat4& proj)
 {
-	m_Text = text;
+	m_Projection = &proj;
 }
 
-void nle::Text::SetProjection(glm::mat4* proj)
-{
-	m_Projection = proj;
-	m_ProjLoc = m_Shaders->getUniformLocation("Projection");
-	m_Resized = true;
-}
-
-void nle::Text::SetPosition(glm::ivec2 pos)
-{
-	m_Pos = pos;
-}
-
-void nle::Text::SetColor(glm::vec3 color)
-{
-	m_Color = color;
-}
-
-std::string nle::Text::GetText()
-{
-	return m_Text;
-}
-
-int nle::Text::GetTextWidth()
+int nle::Text::GetTextWidth(std::string text)
 {
 	auto charMap = m_Font->GetCharMap();
 	int width = 0;
-	for (const auto& c : m_Text)
+	for (const auto& c : text)
 	{
 		Character ch = charMap[c];
 		width += (ch.Advance >> 6);
+	}
+	return width;
+}
+
+int nle::Text::GetTextHeight(std::vector<std::string> text, int spacing)
+{
+
+	auto charMap = m_Font->GetCharMap();
+	int height = 0;
+	for (const auto& curText : text)
+	{
+		for (const auto& c : curText)
+		{
+			Character ch = charMap[c];
+			height += ch.height;
+		}
 	}
 	return width;
 }
@@ -131,69 +119,4 @@ void nle::Text::Draw()
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	m_Pos = originalPos;
-}
-*/
-
-void nle::Text::DrawText(nle::ResourceManager& resManager, const std::string& text, int posx, int posy, glm::vec3 color, const TextAlignment alignment)
-{
-	// Get the default text and text shader
-	auto font = resManager.GetFont(FontType::Arial);
-	auto shader = resManager.GetShader(ShaderType::Text);
-	auto projection = resManager.GetCamera(CameraType::Ortho).GetProjection();
-	GLuint vao, vbo;
-
-	// Fill the vertex buffer
-	glCreateVertexArrays(1, &vao);
-	glCreateBuffers(1, &vbo);
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
-	shader.use();
-	auto t1 = shader.getUniformLocation("Projection");
-	auto t2 = shader.getUniformLocation("TextColor");
-	shader.glUniform(t1, projection);
-	shader.glUniform(t2, color);
-	glActiveTexture(GL_TEXTURE0);
-	glBindVertexArray(vao);
-
-	auto charMap = font.GetCharMap();
-
-	for (const auto& c : text)
-	{
-		Character ch = charMap[c];
-		GLfloat xPos = posx + ch.Bearing.x;
-		GLfloat yPos = posy - (ch.Size.y - ch.Bearing.y);
-		GLfloat w = ch.Size.x;
-		GLfloat h = ch.Size.y;
-
-		GLfloat vertices[6][4] =
-		{
-		{ xPos,		yPos + h,	0.0, 0.0 },
-		{ xPos,		yPos,		0.0, 1.0 },
-		{ xPos + w, yPos,		1.0, 1.0 },
-
-		{ xPos,		yPos + h,	0.0, 0.0 },
-		{ xPos + w,	yPos,		1.0, 1.0 },
-		{ xPos + w,	yPos + h,	1.0, 0.0 }
-		};
-
-		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		posx += (ch.Advance >> 6);
-	}
-
-	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	shader.unuse();
 }

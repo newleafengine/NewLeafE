@@ -17,7 +17,23 @@ namespace nle
 		// This constructor is used if we are creating a 3D text object, for 2D, create it statically using DrawText()
 		Text();
 
-		static void DrawText(nle::ResourceManager& resManager, const std::string& text, int posx, int posy, glm::vec3   color = glm::vec3(0), const TextAlignment alignment = TextAlignment::Center);
+		~Text();
+
+		void SetShader(nle::GLSL& shaders);
+		void SetFont(nle::Font& font);
+		void SetProjection(glm::mat4& proj);
+		int GetTextWidth(std::string text);
+		int GetTextHeight(std::vector<std::string> text, int spacing = 5);
+		void CreateBuffers();
+		void Draw();
+	private:
+		glm::ivec2 m_Pos;
+		glm::mat4* m_Projection;
+		nle::Font* m_Font;
+		GLSL* m_Shaders;
+		glm::vec4 m_Color;
+		GLint m_Vao;
+		GLint m_Vbo;
 	};
 }
 

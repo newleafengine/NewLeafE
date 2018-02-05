@@ -23,9 +23,8 @@ namespace nle
 	class Window
 	{
 		public:
-			Window();
 			Window(const WindowInfo& winInfo);
-			~Window();
+			virtual ~Window();
 			// Create a window with WindowInfo
 			void InitWindow(const WindowInfo& winInfo);
 			// Check if the window is open
@@ -56,12 +55,16 @@ namespace nle
 			// Set the window to active, this must be done if multiple openGL windows are open, since openGL calls only affect the current window
 			inline void SetActive() { m_Window.setActive(); }
 			// Clears the screen with the default clear color of the given clear color
-			void Clear(glm::vec4 color = glm::vec4(0), bool clearDepth = false);
+			void Clear(bool clearDepth = false, glm::vec4 color = glm::vec4(0));
 			// Displays the current Window
-			inline void Display() { m_Window.display(); }
+			virtual void Display();
+			// Requests focus
+			void SetFocus();
 			nle::AreaRect GetDraggableRect();
 			// Closes the window
 			void Close();
+			// Get a window ref
+			sf::RenderWindow& GetWindowRef() { return m_Window; }
 		private:
 			sf::RenderWindow	m_Window;
 			bool				m_Draggable;
