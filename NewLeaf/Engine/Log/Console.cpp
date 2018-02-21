@@ -37,8 +37,6 @@ void nle::Console::SetResources(nle::ResourceManager & resMan)
 
 void nle::Console::Display()
 {
-	SetActive();
-	Clear(false, glm::vec4(0, 0, 1, 1));
 	// Draw a border here
 
 	// end border

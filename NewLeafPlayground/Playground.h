@@ -4,6 +4,7 @@
 #include <Engine\System\ResourceManager.h>
 #include <Engine\Graphics\Font.h>
 #include <Engine\Graphics\Texture.h>
+#include <Engine\Graphics\Text.h>
 
 namespace nlp
 {
@@ -18,9 +19,10 @@ namespace nlp
 			void LoadResources();
 			void GameLoop();
 			void Update();
-			void Display();
+			void DisplayObjects();
 		private: // Private member variables
 			nle::ResourceManager	m_ResourceManager;
+			nle::Text				m_Text;
 			bool					m_Console;
 	};
 }

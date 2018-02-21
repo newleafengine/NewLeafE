@@ -5,10 +5,6 @@ nle::Text::Text()
 {
 }
 
-nle::Text::Text()
-{
-}
-
 nle::Text::~Text()
 {
 
@@ -25,9 +21,31 @@ void nle::Text::SetFont(nle::Font& font)
 	m_Font = &font;
 }
 
+void nle::Text::SetTextColor(glm::vec3 color)
+{
+	m_Color = color;
+	m_TextColorLoc = m_Shaders->getUniformLocation("TextColor");
+}
+
+void nle::Text::SetString(std::string text)
+{
+	m_Text = text;
+}
+
+void nle::Text::SetResize(bool resized)
+{
+	m_Resized = true;
+}
+
+void nle::Text::SetPosition(glm::ivec2 pos)
+{
+	m_Pos = pos;
+}
+
 void nle::Text::SetProjection(glm::mat4& proj)
 {
 	m_Projection = &proj;
+	m_ProjLoc = m_Shaders->getUniformLocation("Projection");
 }
 
 int nle::Text::GetTextWidth(std::string text)
@@ -37,7 +55,7 @@ int nle::Text::GetTextWidth(std::string text)
 	for (const auto& c : text)
 	{
 		Character ch = charMap[c];
-		width += (ch.Advance >> 6);
+		width += (ch.Advance.x >> 6);
 	}
 	return width;
 }
@@ -52,10 +70,10 @@ int nle::Text::GetTextHeight(std::vector<std::string> text, int spacing)
 		for (const auto& c : curText)
 		{
 			Character ch = charMap[c];
-			height += ch.height;
+			height += ch.Advance.y;
 		}
 	}
-	return width;
+	return height;
 }
 
 void nle::Text::CreateBuffers()
@@ -113,10 +131,63 @@ void nle::Text::Draw()
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		m_Pos.x += (ch.Advance >> 6);
+		m_Pos.x += (ch.Advance.x >> 6);
 	}
 
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	m_Pos = originalPos;
+}
+
+void nle::Text::Draw(nle::ResourceManager& resManager, const std::string& text, int posx, int posy, glm::vec3 color, const TextAlignment alignment)
+{
+	// Get the default text and text shader
+	auto &font = resManager.GetFont(FontType::Arial);
+	auto &shader = resManager.GetShader(ShaderType::Text);
+	auto &projection = resManager.GetCamera(CameraType::ConsoleOrtho).GetProjection();
+	
+	shader.use();
+	auto t1 = shader.getUniformLocation("Projection");
+	auto t2 = shader.getUniformLocation("TextColor");
+	shader.glUniform(t1, projection);
+	shader.glUniform(t2, color);
+	glActiveTexture(GL_TEXTURE0);
+	glBindVertexArray(m_Vao);
+	
+	auto charMap = font.GetCharMap();
+	
+	for (const auto& c : text)
+	{
+		Character ch = charMap[c];
+		GLfloat xPos = posx + ch.Bearing.x;
+		GLfloat yPos = posy - (ch.Size.y - ch.Bearing.y);
+		GLfloat w = ch.Size.x;
+		GLfloat h = ch.Size.y;
+	
+		GLfloat vertices[6][4] =
+		{
+			{ xPos, yPos + h, 0.0, 0.0 },
+			{ xPos, yPos, 0.0, 1.0 },
+			{ xPos + w, yPos, 1.0, 1.0 },
+			
+			{ xPos, yPos + h, 0.0, 0.0 },
+			{ xPos + w, yPos, 1.0, 1.0 },
+			{ xPos + w, yPos + h, 1.0, 0.0 }
+		};
+	
+		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), &vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	
+		posx += (ch.Advance.x >> 6);
+	}
+	
+	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	shader.unuse();
 }

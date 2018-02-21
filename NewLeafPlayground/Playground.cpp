@@ -49,6 +49,16 @@ void nlp::Playground::LoadResources()
 	nle::Font& arialFont = m_ResourceManager.AddFont(nle::FontType::Arial);
 	arialFont.LoadFont(48, "Fonts/arial.ttf");
 	arialFont.CreateCharacterMap();
+
+	// Load the text
+	m_Text.CreateBuffers();
+	m_Text.SetShader(m_ResourceManager.GetShader(nle::ShaderType::Text));
+	m_Text.SetFont(m_ResourceManager.GetFont(nle::FontType::Arial));
+	m_Text.SetProjection(m_ResourceManager.GetCamera(nle::CameraType::ConsoleOrtho).GetProjection());
+	m_Text.SetPosition({ 50, 50 });
+	m_Text.SetTextColor(glm::vec4(.5, .9, .7, 1.0));
+	m_Text.SetString("Hello World!!!!");
+	m_Text.SetResize();
 }
 
 void nlp::Playground::GameLoop()
@@ -56,7 +66,7 @@ void nlp::Playground::GameLoop()
 	while (m_ResourceManager.GetRenderWindow()->IsOpen())
 	{
 		Update();
-		Display();
+		DisplayObjects();
 	}
 }
 
@@ -121,12 +131,20 @@ void nlp::Playground::Update()
 	}
 }
 
-void nlp::Playground::Display()
+void nlp::Playground::DisplayObjects()
 {
 	m_ResourceManager.GetRenderWindow()->SetActive();
 	m_ResourceManager.GetRenderWindow()->Clear(true);
+	m_Text.Draw();
 	m_ResourceManager.GetRenderWindow()->Display();
-	
+
 	if (m_Console)
+	{
+		m_ResourceManager.GetConsoleWindow()->SetActive();
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		m_ResourceManager.GetConsoleWindow()->Clear(true, glm::vec4(.2, .2, .2, 1));
+		m_Text.Draw();
 		m_ResourceManager.GetConsoleWindow()->Display();
+	}
 }

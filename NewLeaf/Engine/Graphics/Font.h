@@ -15,7 +15,7 @@ namespace nle
 		GLuint			TextureID;
 		glm::ivec2		Size;
 		glm::ivec2		Bearing;
-		GLuint			Advance;
+		glm::ivec2		Advance;
 	};
 
 	class Font 

@@ -33,7 +33,7 @@ void nle::Font::CreateCharacterMap()
 			tex.getTexture(),
 			glm::ivec2(m_FTFace->glyph->bitmap.width, m_FTFace->glyph->bitmap.rows),
 			glm::ivec2(m_FTFace->glyph->bitmap_left, m_FTFace->glyph->bitmap_top),
-			m_FTFace->glyph->advance.x
+			glm::ivec2(m_FTFace->glyph->advance.x, m_FTFace->height)
 		};
 		m_Characters.emplace(c, character);
 	}
